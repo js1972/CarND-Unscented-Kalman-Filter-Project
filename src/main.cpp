@@ -145,8 +145,13 @@ int main(int argc, char* argv[]) {
       float ro = measurement_pack_list[k].raw_measurements_(0);
       float phi = measurement_pack_list[k].raw_measurements_(1);
       out_file_ << ro * cos(phi) << "\t"; // p1_meas
-      out_file_ << ro * sin(phi) << "\t"; // p2_meas
+      out_file_ << ro * sin(phi) << "\n"; // p2_meas
     }
+
+    //cout << "Index: " << k << endl;
+    //if (k >= 2) {
+    //  return 0;  // TESTING !!!!
+    //}
   }
 
   // close files
