@@ -4,6 +4,7 @@
 #include "measurement_package.h"
 #include "ground_truth_package.h"
 #include <vector>
+#include "tools.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -31,6 +32,9 @@ public:
 
   ///* predicted sigma points matrix
   MatrixXd Xsig_pred_;
+
+  ///* augmented sigma points matrix
+  MatrixXd Xsig_aug_;
 
   ///* time when the state is true, in us
   long time_us_;
@@ -62,10 +66,11 @@ public:
   ///* State dimension
   int n_x_;
 
-  int n_sigma_;
-
-  ///* Augmented state dimension
+  ///* Augmented state dimension (includes the two mean noise values)
   int n_aug_;
+
+  ///* Number of sigma points (rule of thumb: 2*n_x_ + 1)
+  int n_sigma_;
 
   ///* Sigma point spreading parameter
   double lambda_;
@@ -114,6 +119,13 @@ public:
 
   void GenerateAugmentedSigmaPoints(const VectorXd &x, const MatrixXd &P, MatrixXd &Xsig_aug);
 
+  /**
+   * Predict new sigma points using the CTRV process model.
+   *
+   * @param delta_t The change in time (in seconds) between the last measurement and this one
+   * @param Xsig_aug Reference to the augmented sigma points
+   * @param Xsig_pred Reference to the predicted sigma points
+   */
   void SigmaPointPrediction(double delta_t, const MatrixXd &Xsig_aug, MatrixXd &Xsig_pred);
 
   void PredictMeanAndCovariance(const MatrixXd &Xsig_pred, VectorXd &x, MatrixXd &P);
