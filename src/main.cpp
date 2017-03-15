@@ -139,8 +139,9 @@ int main(int argc, char* argv[]) {
 
   // start filtering from the second frame (the speed is unknown in the first
   // frame)
+  number_of_measurements = 6;
   for (size_t k = 0; k < number_of_measurements; ++k) {
-  //for (size_t k = 0; k < 5; ++k) {
+
     // Call the UKF-based fusion
     ukf.ProcessMeasurement(measurement_pack_list[k]);
 

@@ -85,10 +85,16 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       float ro = meas_package.raw_measurements_[0];
       float phi = meas_package.raw_measurements_[1];
       x_ << ro * cos(phi), ro * sin(phi), 0, 0, 0;
+      cout << "\nRADAR" << endl;
+      DebugPrintState();
+
       is_initialized_ = true;
 
     } else if (meas_package.sensor_type_ == MeasurementPackage::LASER and use_laser_) {
       x_ << meas_package.raw_measurements_[0], meas_package.raw_measurements_[1], 0, 0, 0;
+      cout << "\nLASER" << endl;
+      DebugPrintState();
+
       is_initialized_ = true;
 
     } else {
@@ -109,17 +115,19 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     Prediction(dt);
     // update prediction timestamp only if we did prediction
     previous_timestamp_ = meas_package.timestamp_;
+  } else {
+    cout << "measurement skipped : dt < 100msec" << endl;
   }
 
   /*****************************************************************************
    *  Update
    ****************************************************************************/
   if (meas_package.sensor_type_ == MeasurementPackage::RADAR and use_radar_) {
-
+    cout << "New RADAR measurement" << endl;
     UpdateRadar(meas_package);
 
   } else if (meas_package.sensor_type_ == MeasurementPackage::LASER and use_laser_) {
-
+    cout << "New LASER measurement" << endl;
     UpdateLidar(meas_package);
   }
 }
@@ -130,6 +138,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
  * measurement and this one.
  */
 void UKF::Prediction(double delta_t) {
+  cout << "PREDICTION()" << endl;
+
   // Create the sigma point matrix
   MatrixXd Xsig_aug(n_aug_, n_sigma_);
   //MatrixXd Xsig_aug_(n_aug_, n_sigma_);
@@ -153,6 +163,8 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the lidar NIS.
   */
+  cout << "UPDATE LIDAR" << endl;
+
   int n_y = meas_package.raw_measurements_.rows();
 
   VectorXd y_pred(n_y);
@@ -179,7 +191,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   int n_z = meas_package.raw_measurements_.rows();
 
   VectorXd z_pred(n_z);
-  MatrixXd S(n_z,n_z);
+  MatrixXd S(n_z, n_z);
   //create matrix for sigma points in measurement space
   MatrixXd Zsig(n_z, n_sigma_);
 
@@ -268,12 +280,15 @@ void UKF::SigmaPointPrediction(double delta_t, const MatrixXd &Xsig_aug, MatrixX
 }
 
 void UKF::PredictMeanAndCovariance(const MatrixXd &Xsig_pred, VectorXd &x, MatrixXd &P) {
+  cout << "PREDICT MEAN AND COVARIANCE" << endl;
 
   //predicted state mean
   x.fill(0.0);
   for (int i = 0; i < n_sigma_; i++) {  //iterate over sigma points
     x = x + weights_(i) * Xsig_pred.col(i);
   }
+
+  DebugPrintState();
 
   //predicted state covariance matrix
   P.fill(0.0);
@@ -379,6 +394,7 @@ void UKF::PredictRadarMeasurement(const MatrixXd &Xsig_pred, MatrixXd &Zsig, Vec
 
 void UKF::UpdateState(const VectorXd &z, const VectorXd &z_pred, const MatrixXd &S,
                       const MatrixXd &Xsig_pred, const MatrixXd &Zsig, VectorXd &x, MatrixXd &P) {
+  cout << "UPDATE STATE" << endl;
 
   //set measurement dimension, radar can measure r, phi, and r_dot and lidar px and py
   int n_z = z_pred.rows();
@@ -418,6 +434,18 @@ void UKF::UpdateState(const VectorXd &z, const VectorXd &z_pred, const MatrixXd 
 
   //update state mean and covariance matrix
   x = x + K * z_diff;
+  DebugPrintState();
+
   P = P - K*S*K.transpose();
 }
+
+void UKF::DebugPrintState() {
+  cout << "Current State Vector:" << endl;
+  cout << "p_x\t\t\t" << x_(0) << endl;
+  cout << "p_y\t\t\t" << x_(1) << endl;
+  cout << "v\t\t\t" << x_(2) << endl;
+  cout << "psi\t\t\t" << x_(3) << endl;
+  cout << "psi_dot\t\t" << x_(4) << endl << endl;
+}
+
 #pragma clang diagnostic pop
