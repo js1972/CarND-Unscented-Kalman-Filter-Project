@@ -53,12 +53,13 @@ UKF::UKF() {
 
   n_x_ = 5;
   n_aug_ = 7;
+
   lambda_ = 3 - n_aug_;
   n_sigma_ = 2 * n_aug_ + 1;
 
   Xsig_pred_ = MatrixXd(n_x_, n_sigma_);
 
-  // set weights
+  // calculate weights
   weights_ = VectorXd(n_sigma_);
   weights_(0)= lambda_/(lambda_ + n_aug_);
   for (int i=1; i<n_sigma_; i++) {
