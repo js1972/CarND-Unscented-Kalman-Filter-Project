@@ -171,7 +171,11 @@ int main(int argc, char* argv[]) {
     out_file_ << gt_pack_list[k].gt_values_(0) << "\t";
     out_file_ << gt_pack_list[k].gt_values_(1) << "\t";
     out_file_ << gt_pack_list[k].gt_values_(2) << "\t";
-    out_file_ << gt_pack_list[k].gt_values_(3) << "\n";
+    out_file_ << gt_pack_list[k].gt_values_(3) << "\t";
+
+    // output the NIS values for consistency check
+    out_file_ << ukf.NIS_lidar_ << "\t";
+    out_file_ << ukf.NIS_radar_ << "\n";
 
     VectorXd x(4);
     x << ukf.x_(0), ukf.x_(1),ukf.x_(2), ukf.x_(3);
@@ -182,19 +186,6 @@ int main(int argc, char* argv[]) {
   // compute the accuracy (RMSE)
   Tools tools;
   cout << "\n********************" << endl;
-  //cout << estimations.size() << endl;
-  //cout << ground_truth.size() << endl;
-
-  //cout << "Estimations:" << endl;
-  //for (VectorXd v : estimations) {
-  //  cout << v << endl;
-  //}
-
-  //cout << "Ground truth:" << endl;
-  //for (VectorXd v : ground_truth) {
-  //  cout << v << endl;
-  //}
-
   cout << "Accuracy - RMSE:" << endl << tools.CalculateRMSE(estimations, ground_truth) << endl;
 
   // close files
