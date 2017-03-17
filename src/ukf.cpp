@@ -41,25 +41,25 @@ UKF::UKF() {
   // more closely.
   // https://cs.adelaide.edu.au/~ianr/Teaching/Estimation/LectureNotes2.pdf
   // p.28
-  std_a_ = 3.1; // good for file1 - 10; //3;
+  std_a_ = 0.2; //3.1; // good for file1 - 10; //3;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.5; // good for file 1 - 0.4; //0.5;
+  std_yawdd_ = 0.2; // good for file 1 - 0.4; //0.5;
 
   // Laser measurement noise standard deviation position1 in m
-  std_laspx_ = 0.1; //0.085;
+  std_laspx_ = 0.05; //0.15; //0.085;
 
   // Laser measurement noise standard deviation position2 in m
-  std_laspy_ = 0.1; //0.085;
+  std_laspy_ = 0.05; //0.15; //0.085;
 
   // Radar measurement noise standard deviation radius in m
   std_radr_ = 0.3;
 
   // Radar measurement noise standard deviation angle in rad
-  std_radphi_ = 0.03;
+  std_radphi_ = 0.0175; //0.03;
 
   // Radar measurement noise standard deviation radius change in m/s
-  std_radrd_ = 0.3;
+  std_radrd_ = 0.1; //0.3;
 
   previous_timestamp_ = 0;
 
@@ -212,7 +212,8 @@ void UKF::GenerateAugmentedSigmaPoints(const VectorXd &x, const MatrixXd &P, Mat
   P_aug(n_aug_-1,n_aug_-1) = std_yawdd_ * std_yawdd_;
 
   //create square root matrix
-  MatrixXd L = P_aug.llt().matrixL();
+  //MatrixXd L = P_aug.llt().matrixL();
+  MatrixXd L = P_aug.ldlt().matrixL();
 
   //create augmented sigma points
   Xsig_aug.col(0)  = x_aug;
@@ -372,9 +373,12 @@ void UKF::PredictRadarMeasurement(const MatrixXd &Xsig_pred, MatrixXd &Zsig, Vec
 
     // measurement model
     Zsig(0, i) = sqrt(px*px + py*py);               // r
+    if (fabs(Zsig(0, i)) < 0.0001) {
+      Zsig(0, i) = 0.0001;
+    }
+
     if (fabs(Zsig(0, i)) > 0.001) {
       Zsig(1, i) = atan2(py, px);                   // phi
-      //Zsig(1, i) = norm_angle(Zsig(1, i)); // not req'd
       Zsig(2, i) = (px*v1 + py*v2) / Zsig(0, i);    // r_dot
     } else {
       Zsig(1, i) = 0.0;                             // phi
@@ -408,6 +412,10 @@ void UKF::PredictRadarMeasurement(const MatrixXd &Xsig_pred, MatrixXd &Zsig, Vec
           0,                   0,                       std_radrd_*std_radrd_;
 
   S = S + R;
+
+  for (int i=0; i<S.cols(); i++) {
+    S(1,i) = norm_angle(S(1,i));
+  }
 }
 
 void UKF::UpdateState(const VectorXd &z, const VectorXd &z_pred, const MatrixXd &S,
