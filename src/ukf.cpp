@@ -41,25 +41,25 @@ UKF::UKF() {
   // more closely.
   // https://cs.adelaide.edu.au/~ianr/Teaching/Estimation/LectureNotes2.pdf
   // p.28
-  std_a_ = 0.2; //3.1; // good for file1 - 10; //3;
+  std_a_ = 3; //3.1; // good for file1 - 10; //3;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.2; // good for file 1 - 0.4; //0.5;
+  std_yawdd_ = 0.5; // good for file 1 - 0.4; //0.5;
 
   // Laser measurement noise standard deviation position1 in m
-  std_laspx_ = 0.05; //0.15; //0.085;
+  std_laspx_ = 0.085; //0.15; //0.085;
 
   // Laser measurement noise standard deviation position2 in m
-  std_laspy_ = 0.05; //0.15; //0.085;
+  std_laspy_ = 0.085; //0.15; //0.085;
 
   // Radar measurement noise standard deviation radius in m
   std_radr_ = 0.3;
 
   // Radar measurement noise standard deviation angle in rad
-  std_radphi_ = 0.0175; //0.03;
+  std_radphi_ = 0.03; //0.0175; //0.03;
 
   // Radar measurement noise standard deviation radius change in m/s
-  std_radrd_ = 0.1; //0.3;
+  std_radrd_ = 0.3; //0.1; //0.3;
 
   previous_timestamp_ = 0;
 
@@ -211,9 +211,19 @@ void UKF::GenerateAugmentedSigmaPoints(const VectorXd &x, const MatrixXd &P, Mat
   P_aug(n_aug_-2,n_aug_-2) = std_a_ * std_a_;
   P_aug(n_aug_-1,n_aug_-1) = std_yawdd_ * std_yawdd_;
 
+  /// NUMERICAL STABILITY ISSUE HERE ->
   //create square root matrix
+  // LDLT is a more robust method however results are very bad when using it!
+  // Here we are relying on the constructor of LLT to attempt the cholesky
+  // decomposition and warn us if it cannot.
+
   //MatrixXd L = P_aug.llt().matrixL();
-  MatrixXd L = P_aug.ldlt().matrixL();
+  //MatrixXd L = P_aug.ldlt().matrixL();
+  Eigen::LLT<MatrixXd> lltOfPaug(P_aug);
+  if (lltOfPaug.info() == Eigen::NumericalIssue) {
+    std::cout << "LLT failed!" << std::endl;
+  }
+  MatrixXd L = lltOfPaug.matrixL();
 
   //create augmented sigma points
   Xsig_aug.col(0)  = x_aug;
