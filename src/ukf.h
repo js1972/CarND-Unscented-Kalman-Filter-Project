@@ -9,6 +9,7 @@
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using std::range_error;
 
 class UKF {
 public:
@@ -18,6 +19,7 @@ public:
 
   ///* previous measurement
   long previous_timestamp_;
+  MeasurementPackage previous_measurement_;
 
   ///* if this is false, laser measurements will be ignored (except for init)
   bool use_laser_;
@@ -27,11 +29,9 @@ public:
 
   ///* state vector: [pos1 pos2 vel_abs yaw_angle yaw_rate] in SI units and rad
   VectorXd x_;
-  VectorXd x_old_;
 
   ///* state covariance matrix
   MatrixXd P_;
-  MatrixXd old_P_;
 
   ///* predicted sigma points matrix
   MatrixXd Xsig_pred_;

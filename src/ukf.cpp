@@ -41,16 +41,16 @@ UKF::UKF() {
   // more closely.
   // https://cs.adelaide.edu.au/~ianr/Teaching/Estimation/LectureNotes2.pdf
   // p.28
-  std_a_ = 0.2; //3.1; // good for file1 - 10; //3;
+  std_a_ = 3; //3.1; // good for file1 - 10; //3;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.1; // good for file 1 - 0.4; //0.5;
+  std_yawdd_ = 0.5; // good for file 1 - 0.4; //0.5;
 
   // Laser measurement noise standard deviation position1 in m
-  std_laspx_ = 0.085; //0.15; //0.085;
+  std_laspx_ = 0.05; //0.15; //0.085;
 
   // Laser measurement noise standard deviation position2 in m
-  std_laspy_ = 0.085; //0.15; //0.085;
+  std_laspy_ = 0.05; //0.15; //0.085;
 
   // Radar measurement noise standard deviation radius in m
   std_radr_ = 0.1;
@@ -107,8 +107,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
     // initialize the state vector
     if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
-      float rho = meas_package.raw_measurements_[0];
-      float phi = meas_package.raw_measurements_[1];
+      double rho = meas_package.raw_measurements_[0];
+      double phi = meas_package.raw_measurements_[1];
       x_ << rho * cos(phi), rho * sin(phi), 0, 0, 0;
 
     } else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
@@ -128,10 +128,35 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   // Compute the time elapsed between the current and previous measurements, in seconds
   double dt = (meas_package.timestamp_ - previous_timestamp_) / 1000000.0;
   //cout << "delta_t: " << dt << endl;
+  previous_measurement_ = meas_package;
 
-  //if (previous_timestamp_ < meas_package.timestamp_ - 100) {
-  Prediction(dt);
-  //}
+  try {
+    Prediction(dt);
+
+  } catch (std::range_error e) {
+    //previous_timestamp_  = meas_package.timestamp_;
+    // initialize the covariance matrix
+    P_ << 1, 0, 0, 0, 0,
+            0, 1, 0, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 0, 1;
+
+    // initialize the state vector
+    if (previous_measurement_.sensor_type_ == MeasurementPackage::RADAR) {
+      double rho = previous_measurement_.raw_measurements_[0];
+      double phi = previous_measurement_.raw_measurements_[1];
+      x_ << rho * cos(phi), rho * sin(phi), 0, 0, 0;
+
+    } else if (previous_measurement_.sensor_type_ == MeasurementPackage::LASER) {
+      x_ << previous_measurement_.raw_measurements_[0], previous_measurement_.raw_measurements_[1], 0, 0, 0;
+
+    } else {
+      std::cout << "Invalid sensor type" << std::endl;
+    }
+
+    Prediction(dt);
+  }
 
   // update prediction timestamp only if we did prediction
   previous_timestamp_ = meas_package.timestamp_;
@@ -220,21 +245,20 @@ void UKF::GenerateAugmentedSigmaPoints(const VectorXd &x, const MatrixXd &P, Mat
   P_aug(n_aug_-1,n_aug_-1) = std_yawdd_ * std_yawdd_;
 
   /// NUMERICAL STABILITY ISSUE HERE ->
-  //create square root matrix
-  // LDLT is a more robust method however results are very bad when using it!
-  // Here we are relying on the constructor of LLT to attempt the cholesky
-  // decomposition and warn us if it cannot.
 
+  //MatrixXd L = P_aug.llt().matrixL(); THIS IS FROM THE CLASSES - NOT STABLE
 
-  MatrixXd L = P_aug.llt().matrixL();
-  /*
-  MatrixXd L = P_aug.ldlt().matrixL();
+  // Take matrix square root
+  // 1. compute the Cholesky decomposition of P_aug
   Eigen::LLT<MatrixXd> lltOfPaug(P_aug);
   if (lltOfPaug.info() == Eigen::NumericalIssue) {
-    std::cout << "LLT failed! Resetting P" << std::endl;
+    // if decomposition fails, we have numerical issues
+    std::cout << "LLT failed!" << std::endl;
+    throw std::range_error("LLT failed");
   }
+  // 2. get the lower triangle
   MatrixXd L = lltOfPaug.matrixL();
-  */
+
 
   //create augmented sigma points
   Xsig_aug.col(0)  = x_aug;

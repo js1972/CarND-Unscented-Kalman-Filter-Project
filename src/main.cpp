@@ -146,11 +146,11 @@ int main(int argc, char* argv[]) {
     ukf.ProcessMeasurement(measurement_pack_list[k]);
 
     // output the estimation
-    out_file_ << ukf.x_(0) << "\t"; // pos1 - est
-    out_file_ << ukf.x_(1) << "\t"; // pos2 - est
-    out_file_ << ukf.x_(2) << "\t"; // vel_abs -est
-    out_file_ << ukf.x_(3) << "\t"; // yaw_angle -est
-    out_file_ << ukf.x_(4) << "\t"; // yaw_rate -est
+    out_file_ << ukf.x_(0) << "\t"; // pos1 - est - px
+    out_file_ << ukf.x_(1) << "\t"; // pos2 - est - py
+    out_file_ << ukf.x_(2) << "\t"; // vel_abs - est
+    out_file_ << ukf.x_(3) << "\t"; // yaw_angle - est
+    out_file_ << ukf.x_(4) << "\t"; // yaw_rate - est
 
     // output the measurements
     if (measurement_pack_list[k].sensor_type_ == MeasurementPackage::LASER) {
@@ -178,7 +178,8 @@ int main(int argc, char* argv[]) {
     out_file_ << ukf.NIS_radar_ << "\n";
 
     VectorXd x(4);
-    x << ukf.x_(0), ukf.x_(1),ukf.x_(2), ukf.x_(3);
+    //x << ukf.x_(0), ukf.x_(1),ukf.x_(2), ukf.x_(3);
+    x << ukf.x_(0), ukf.x_(1),ukf.x_(2)*cos(ukf.x_(3)), ukf.x_(2)*sin(ukf.x_(3));
     estimations.push_back(x);
     ground_truth.push_back(gt_pack_list[k].gt_values_);
   }
