@@ -140,6 +140,10 @@ public:
   void UpdateState(const VectorXd &z, const VectorXd &z_pred, const MatrixXd &S,
                    const MatrixXd &Xsig_pred, const MatrixXd &Zsig, VectorXd &x, MatrixXd &P);
 
+  auto InitialiseCovariance() -> MatrixXd;
+
+  auto InitialiseStateVector(MeasurementPackage meas_package) -> VectorXd;
+
   void DebugPrintState();
 };
 
