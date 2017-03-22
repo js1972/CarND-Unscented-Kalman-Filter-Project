@@ -67,7 +67,6 @@ Below are some images showing how the UKF can track the moving object using just
 Radar only                    |  Lidar only                   |  Combined
 :----------------------------:|:-----------------------------:|:-------------------------
 ![](Docs/tracking_radar.png)  |  ![](Docs/tracking_lidar.png) |  ![](Docs/tracking_combined.png)
-:----------------------------:|:-----------------------------:|:-------------------------
 px: 0.161358, py: 0.198678    | px: 0.327042, py: 0.150826    | px: 0.0855313, py: 0.096916
 
 Note how much better the tracking is when we fuse the sensor data...
