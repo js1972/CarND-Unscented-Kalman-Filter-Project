@@ -22,16 +22,10 @@ UKF::UKF() {
   x_ = VectorXd(5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  // 10 is probably an unlrealistic value if we are tracking a person;
-  // however the literature states that it can be a handy trick to bump
-  // up the process noise to get the filter to track the measurements
-  // more closely.
-  // https://cs.adelaide.edu.au/~ianr/Teaching/Estimation/LectureNotes2.pdf
-  // p.28
   std_a_ = 1.9;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.5;
+  std_yawdd_ = 0.6;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -123,24 +117,38 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
   /*****************************************************************************
    *  Prediction
+   *
+   *  The Prediction step includes a matrix square root when generating the
+   *  augmented sigma points. This can fail when the the matrix is not positive-
+   *  definite which can happen with certain parameters.
+   *  I have found two ways to get aorund this in discussion with my fellow
+   * students:
+   * (1) Subdivide large dt and repeatedly call Prediction() with a small dt
+   * (2) Trap the P_aug.llt() failure adn revert to previous measurement and
+   * initialise P.
+   *
+   * I have chosen option (1) after testing both methods as it gives much
+   * better results.
    ****************************************************************************/
   // Compute the time elapsed between the current and previous measurements, in seconds
   double dt = (meas_package.timestamp_ - previous_timestamp_) / 1000000.0;
 
-  // The Prediction step includes a matrix square root when generating the
-  // augmented sigma points. This can fail when the the matrix is not positive-
-  // definite which can happen with certain parameters. Here we trap this
-  // issue and restart the filter with the previous measurement and an initial
-  // covariance matrix.
-  try {
-    Prediction(dt);
-
-  } catch (std::range_error e) {
-    P_ = InitialiseCovariance();
-    x_ = InitialiseStateVector(meas_package);
-
-    Prediction(dt);
+  while (dt > 0.1) {
+    Prediction(0.05);
+    dt -= 0.05;
   }
+
+  Prediction(dt);
+
+  //try {
+  //  Prediction(dt);
+
+  //} catch (std::range_error e) {
+  //  P_ = InitialiseCovariance();
+  //  x_ = InitialiseStateVector(meas_package);
+
+  //  Prediction(dt);
+  //}
 
   previous_timestamp_ = meas_package.timestamp_;
   previous_measurement_ = meas_package;

@@ -49,17 +49,17 @@ for instructions and the project rubric.
 Current parameter tuning gives the following RMSE accuracy between estimations and ground truth.
 File 1:<br>
 Accuracy - RMSE:<br>
-px 0.0855313<br>
-py 0.096916<br>
-vx 0.603193<br>
-vy 0.610402<br>
+px 0.0741202<br>
+py 0.0841529<br>
+vx 0.582077<br>
+vy 0.587683<br>
  
 File 2:<br>
 Accuracy - RMSE:<br>
-px 0.195358<br>
-py 0.189022<br>
-vx 0.502349<br>
-vy 0.466153<br>
+px 0.184262<br>
+py 0.179197<br>
+vx 0.222446<br>
+vy 0.233886<br>
 
 ## Visualisations
 Below are some images showing how the UKF can track the moving object using just the radar sensor data; lidar sensor data and combined sensor data:
@@ -67,7 +67,7 @@ Below are some images showing how the UKF can track the moving object using just
 Radar only                    |  Lidar only                   |  Combined
 :----------------------------:|:-----------------------------:|:-------------------------
 ![](Docs/tracking_radar.png)  |  ![](Docs/tracking_lidar.png) |  ![](Docs/tracking_combined.png)
-px: 0.161358, py: 0.198678    | px: 0.327042, py: 0.150826    | px: 0.0855313, py: 0.096916
+px: 0.164535, py: 0.210871    | px: 0.280238, py: 0.146671    | px: 0.0741202, py: 0.0841529
 
 Note how much better the tracking is when we fuse the sensor data...
 
