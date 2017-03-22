@@ -44,3 +44,15 @@ Matlab scripts that can generate additional data.
 This information is only accessible by people who are already enrolled in Term 2
 of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/c3eb3583-17b2-4d83-abf7-d852ae1b9fff/concepts/4d0420af-0527-4c9f-a5cd-56ee0fe4f09e)
 for instructions and the project rubric.
+
+## Visualisations
+Below are some images showing how the UKF can track the moving object using just the radar sensor data; lidar sensor data and combined sensor data:
+
+Radar only                    |  Lidar only                   |  Combined
+:----------------------------:|:-----------------------------:|:-------------------------
+![](Docs/tracking_radar.png)  |  ![](Docs/tracking_lidar.png) |  ![](Docs/tracking_combined.png)
+
+Note how much better the tracking is when we fuse the sensor data...
+
+Normalised Innovation Squared (NIS) is a technique used to check the consistency of the UKF. It follows a Chi-squared distribution and we can plot the 95% interval. If allot more than 5% of our data points are above this line then it shows inconsistency in our results and we may need to tune our process noise measurement or it could highlight issues with out algorithm.
+![NIS for Radar - file1](Docs/nis_radar_file1.png)
