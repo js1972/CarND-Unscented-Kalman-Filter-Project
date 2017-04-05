@@ -121,14 +121,18 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
    *  The Prediction step includes a matrix square root when generating the
    *  augmented sigma points. This can fail when the the matrix is not positive-
    *  definite which can happen with certain parameters.
-   *  I have found two ways to get aorund this in discussion with my fellow
+   *  I have found two ways to get around this in discussion with my fellow
    * students:
    * (1) Subdivide large dt and repeatedly call Prediction() with a small dt
-   * (2) Trap the P_aug.llt() failure adn revert to previous measurement and
+   * (2) Trap the P_aug.llt() failure and revert to previous measurement and
    * initialise P.
    *
    * I have chosen option (1) after testing both methods as it gives much
    * better results.
+   * Additionally I have used the modfiied form of the P update as given in
+   * Appendix 3 of this paper, which is to handle the numerical issues
+   * associated with having k (we call it lambda) < 0
+   * (https://www3.nd.edu/~lemmon/courses/ee67033/pubs/julier-ukf-tac-2000.pdf).
    ****************************************************************************/
   // Compute the time elapsed between the current and previous measurements, in seconds
   double dt = (meas_package.timestamp_ - previous_timestamp_) / 1000000.0;
@@ -313,12 +317,23 @@ void UKF::PredictMeanAndCovariance(const MatrixXd &Xsig_pred, VectorXd &x, Matri
     x = x + weights_(i) * Xsig_pred.col(i);
   }
 
+  ////predicted state covariance matrix
+  //P.fill(0.0);
+  //for (int i = 0; i < n_sigma_; i++) {  //iterate over sigma points
+  //
+  //  // state difference
+  //  VectorXd x_diff = Xsig_pred.col(i) - x;
+  //  x_diff(3) = normalizeRadiansPiToMinusPi(x_diff(3));
+  //
+  //  P = P + weights_(i) * x_diff * x_diff.transpose();
+  //}
+
   //predicted state covariance matrix
   P.fill(0.0);
-  for (int i = 0; i < n_sigma_; i++) {  //iterate over sigma points
+  for (int i = 1; i < n_sigma_; i++) {  //iterate over sigma points
 
     // state difference
-    VectorXd x_diff = Xsig_pred.col(i) - x;
+    VectorXd x_diff = Xsig_pred.col(i) - Xsig_pred.col(0);
     x_diff(3) = normalizeRadiansPiToMinusPi(x_diff(3));
 
     P = P + weights_(i) * x_diff * x_diff.transpose();
