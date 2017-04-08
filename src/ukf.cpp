@@ -81,7 +81,8 @@ auto UKF::InitialiseStateVector(MeasurementPackage meas_package) -> VectorXd {
   if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
     double rho = meas_package.raw_measurements_[0];
     double phi = meas_package.raw_measurements_[1];
-    x << rho * cos(phi), rho * sin(phi), 0, 0, 0;
+    double rho_d = meas_package.raw_measurements_[2];
+    x << rho * cos(phi), rho * sin(phi), rho_d, phi, 0.0;
 
   } else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
     x << meas_package.raw_measurements_[0], meas_package.raw_measurements_[1], 0, 0, 0;
